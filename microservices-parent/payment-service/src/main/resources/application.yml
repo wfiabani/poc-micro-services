@@ -1,0 +1,52 @@
+server:
+  port: 8089
+
+spring:
+  application:
+    name: payment-service
+  kafka:
+    bootstrap-servers: ${KAFKA_HOST:localhost:9092}
+
+order:
+  service:
+    url: http://order-service:8086
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      order:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: 2s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,circuitbreakers,prometheus
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
+  info:
+    env:
+      enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTLP_ENDPOINT:http://localhost:4318/v1/traces}
+
+info:
+  app:
+    name: Payment Service
+    version: 1.0.0

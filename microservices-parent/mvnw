@@ -1,0 +1,45 @@
+#!/bin/sh
+# Maven Wrapper script for Unix-like systems
+
+set -e
+
+MAVEN_WRAPPER_JAR=".mvn/wrapper/maven-wrapper.jar"
+MAVEN_WRAPPER_PROPERTIES=".mvn/wrapper/maven-wrapper.properties"
+
+# Locate script directory
+MAVEN_PROJECTBASEDIR="${MAVEN_BASEDIR:-""}"
+if [ -z "$MAVEN_PROJECTBASEDIR" ]; then
+  MAVEN_PROJECTBASEDIR=$(cd "$(dirname "$0")" && pwd)
+fi
+
+# Read wrapper URL from properties file
+WRAPPER_URL=$(grep '^wrapperUrl' "$MAVEN_PROJECTBASEDIR/$MAVEN_WRAPPER_PROPERTIES" | cut -d'=' -f2 | tr -d '\r')
+DISTRIBUTION_URL=$(grep '^distributionUrl' "$MAVEN_PROJECTBASEDIR/$MAVEN_WRAPPER_PROPERTIES" | cut -d'=' -f2 | tr -d '\r')
+
+# Derive Maven version and home from distributionUrl
+MAVEN_VERSION=$(echo "$DISTRIBUTION_URL" | sed 's|.*/apache-maven-\([0-9.]*\)-bin\.zip|\1|')
+MAVEN_HOME_PARENT="${HOME}/.m2/wrapper/dists"
+MAVEN_DIST_NAME="apache-maven-${MAVEN_VERSION}"
+MAVEN_HOME="${MAVEN_HOME_PARENT}/${MAVEN_DIST_NAME}/${MAVEN_DIST_NAME}"
+
+# Download and unpack Maven distribution if not already present
+if [ ! -d "$MAVEN_HOME" ]; then
+  echo "Downloading Maven ${MAVEN_VERSION}..."
+  mkdir -p "${MAVEN_HOME_PARENT}/${MAVEN_DIST_NAME}"
+  DIST_ZIP="${MAVEN_HOME_PARENT}/${MAVEN_DIST_NAME}/${MAVEN_DIST_NAME}-bin.zip"
+
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL -o "$DIST_ZIP" "$DISTRIBUTION_URL"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q -O "$DIST_ZIP" "$DISTRIBUTION_URL"
+  else
+    echo "ERROR: Neither curl nor wget found. Cannot download Maven." >&2
+    exit 1
+  fi
+
+  unzip -q "$DIST_ZIP" -d "${MAVEN_HOME_PARENT}/${MAVEN_DIST_NAME}"
+  rm -f "$DIST_ZIP"
+  echo "Maven ${MAVEN_VERSION} installed at ${MAVEN_HOME}"
+fi
+
+exec "${MAVEN_HOME}/bin/mvn" "$@"

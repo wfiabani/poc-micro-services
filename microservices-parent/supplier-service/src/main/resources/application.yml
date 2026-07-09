@@ -1,0 +1,33 @@
+server:
+  port: 8088
+
+spring:
+  application:
+    name: supplier-service
+  kafka:
+    bootstrap-servers: ${KAFKA_HOST:localhost:9092}
+    listener:
+      observation-enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTLP_ENDPOINT:http://localhost:4318/v1/traces}
+
+info:
+  app:
+    name: Supplier Service
+    version: 1.0.0
