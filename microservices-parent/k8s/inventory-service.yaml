@@ -27,6 +27,10 @@ spec:
               value: "kafka-host-service:9092"
             - name: OTLP_ENDPOINT
               value: "http://jaeger:4318/v1/traces"
+            - name: REDIS_HOST
+              value: "redis"
+            - name: REDIS_PORT
+              value: "6379"
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness

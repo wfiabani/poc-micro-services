@@ -8,6 +8,7 @@ Esta é uma *prova de conceito*, um *laboratório de resiliência* para meus est
 - Observabilidade e Telemetria (Jaeger, Loki, Prometheus, Grafana) com dashboards customizados;
 - Mensageria (Apache Kafka);
 - Escalabilidade (Kubernetes);
+- Cache (Caffeine, Redis);
 
 
 # RoadMap
@@ -18,7 +19,15 @@ Esta é uma *prova de conceito*, um *laboratório de resiliência* para meus est
 - Ingress, Ingress Controller;
 - API Gateway;
 - Proxy reverso;
-- Cache
 - NoSQL
 - CI/CD
 - Elastic Search
+
+
+# Metodologia
+
+São criadas branches à partir da master onde bugs críticos aleatórios são inseridos via IA, onde a proposta é identificar e corrigir o bug, simulando situações de cãos em ambientes críticos.
+
+## Lista de Bugs
+
+- BUG 001 - branch feature/bug-001
