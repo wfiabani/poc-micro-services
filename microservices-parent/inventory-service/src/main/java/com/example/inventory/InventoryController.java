@@ -13,10 +13,13 @@ public class InventoryController {
 
     private final SupplierClient supplierClient;
     private final InventoryCatalog inventoryCatalog;
+    private final SupplierStockCache supplierStockCache;
 
-    public InventoryController(SupplierClient supplierClient, InventoryCatalog inventoryCatalog) {
+    public InventoryController(SupplierClient supplierClient, InventoryCatalog inventoryCatalog,
+                                SupplierStockCache supplierStockCache) {
         this.supplierClient = supplierClient;
         this.inventoryCatalog = inventoryCatalog;
+        this.supplierStockCache = supplierStockCache;
     }
 
     @GetMapping
@@ -38,7 +41,8 @@ public class InventoryController {
             return ResponseEntity.status(404).body(notFound);
         }
 
-        Map<String, Object> supplierStock = supplierClient.getSupplierStock(sku);
+        Map<String, Object> supplierStock = supplierStockCache.getOrFetch(
+                sku, () -> supplierClient.getSupplierStock(sku));
         Map<String, Object> body = Map.of(
                 "sku", item.get().sku(),
                 "quantity", item.get().quantity(),

@@ -23,4 +23,4 @@ COPY --from=builder /build/inventory-service/target/*.jar app.jar
 
 EXPOSE 8087
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=70.0", "-jar", "app.jar"]

@@ -6,10 +6,18 @@ spring:
     name: inventory-service
   kafka:
     bootstrap-servers: ${KAFKA_HOST:localhost:9092}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 500ms
+      connect-timeout: 500ms
 
 supplier:
   service:
     url: http://supplier-service:8088
+  stock-cache:
+    ttl-seconds: 300
 
 resilience4j:
   circuitbreaker:
