@@ -30,4 +30,4 @@ São criadas branches à partir da master onde bugs críticos aleatórios são i
 
 ## Lista de Bugs
 
-- BUG 001 - branch feature/bug-001
+- BUG 001 - branch [feature/bug-001](https://github.com/wfiabani/poc-micro-services/tree/feature/bug-001)
