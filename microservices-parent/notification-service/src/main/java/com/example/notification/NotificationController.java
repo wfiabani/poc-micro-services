@@ -4,6 +4,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 @RestController
 @RequestMapping("/notifications")
@@ -22,8 +26,19 @@ public class NotificationController {
         String paymentId = (String) request.getOrDefault("paymentId", "UNKNOWN");
         String sku       = (String) request.getOrDefault("sku", "UNKNOWN");
 
-        Map<String, Object> paymentInfo  = paymentClient.getPayment(paymentId);
-        Map<String, Object> shippingInfo = shippingClient.getShipment(sku);
+        // Busca pagamento e envio em paralelo para reduzir a latência da notificação.
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        Future<Map<String, Object>> paymentFuture  = executor.submit(() -> paymentClient.getPayment(paymentId));
+        Future<Map<String, Object>> shippingFuture = executor.submit(() -> shippingClient.getShipment(sku));
+
+        Map<String, Object> paymentInfo;
+        Map<String, Object> shippingInfo;
+        try {
+            paymentInfo  = paymentFuture.get();
+            shippingInfo = shippingFuture.get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
 
         return ResponseEntity.status(201).body(Map.of(
                 "notification", request,
