@@ -456,6 +456,178 @@ data:
         }
       ]
     }
+  jvm-runtime.json: |
+    {
+      "title": "JVM Runtime (Threads, GC & Health Probes)",
+      "uid": "jvm-runtime-overview",
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "time": { "from": "now-1h", "to": "now" },
+      "templating": {
+        "list": [
+          {
+            "name": "instance",
+            "type": "query",
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "query": "label_values(up{job=\"microservices-parent\"}, instance)",
+            "refresh": 2,
+            "multi": true,
+            "includeAll": true,
+            "current": { "text": "All", "value": "$__all" }
+          }
+        ]
+      },
+      "panels": [
+        {
+          "id": 1,
+          "title": "Threads vivas por servico",
+          "type": "timeseries",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "jvm_threads_live_threads{instance=~\"$instance\"}",
+              "legendFormat": "{{instance}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "title": "Threads daemon vs pico",
+          "type": "timeseries",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "jvm_threads_daemon_threads{instance=~\"$instance\"}",
+              "legendFormat": "{{instance}} daemon",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "jvm_threads_peak_threads{instance=~\"$instance\"}",
+              "legendFormat": "{{instance}} pico",
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "title": "Threads por estado",
+          "type": "timeseries",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "jvm_threads_states_threads{instance=~\"$instance\"}",
+              "legendFormat": "{{instance}} - {{state}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "custom": { "stacking": { "mode": "normal" } } } }
+        },
+        {
+          "id": 4,
+          "title": "Taxa de coletas GC (coletas/s)",
+          "type": "timeseries",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "rate(jvm_gc_pause_seconds_count{instance=~\"$instance\"}[5m])",
+              "legendFormat": "{{instance}} - {{action}}/{{cause}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "title": "Tempo pausado em GC (s/s)",
+          "type": "timeseries",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "rate(jvm_gc_pause_seconds_sum{instance=~\"$instance\"}[5m])",
+              "legendFormat": "{{instance}} - {{action}}/{{cause}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "percentunit" } }
+        },
+        {
+          "id": 6,
+          "title": "Heap pos-GC: usado vs maximo",
+          "type": "timeseries",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "jvm_gc_live_data_size_bytes{instance=~\"$instance\"}",
+              "legendFormat": "{{instance}} usado",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "jvm_gc_max_data_size_bytes{instance=~\"$instance\"}",
+              "legendFormat": "{{instance}} maximo",
+              "refId": "B"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "bytes" } }
+        },
+        {
+          "id": 7,
+          "title": "Sobre os paineis de probes",
+          "type": "text",
+          "gridPos": { "h": 4, "w": 24, "x": 0, "y": 32 },
+          "options": {
+            "mode": "markdown",
+            "content": "O Spring Boot Actuator nao exporta o resultado do liveness/readiness probe como metrica Prometheus, e o kubelet tambem nao expoe isso diretamente. Os paineis abaixo usam metricas do **kube-state-metrics** como aproximacao: `kube_pod_container_status_ready` reflete o estado de readiness do container, e `kube_pod_container_status_restarts_total` e um proxy de falhas de liveness (o motivo mais comum de restart de um pod saudavel e o liveness probe falhar repetidamente)."
+          }
+        },
+        {
+          "id": 8,
+          "title": "Readiness dos containers",
+          "type": "table",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 36 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "kube_pod_container_status_ready{namespace=~\".+\"} == 1",
+              "format": "table",
+              "instant": true,
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 9,
+          "title": "Restarts (proxy de falha de liveness)",
+          "type": "timeseries",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 36 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "increase(kube_pod_container_status_restarts_total[5m])",
+              "legendFormat": "{{pod}}/{{container}}",
+              "refId": "A"
+            }
+          ]
+        }
+      ]
+    }
 ---
 apiVersion: apps/v1
 kind: Deployment
